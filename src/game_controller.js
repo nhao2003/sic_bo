@@ -5,13 +5,13 @@ import SicBo from "../src/compile.js";
 const { abi, evm } = SicBo;
 import dotenv from "dotenv";
 dotenv.config();
+const isProduction = true;
 class GameController {
   constructor(web3) {
     const provider = new HDWalletProvider(
       process.env.MNEMONIC,
       "https://sepolia.infura.io/v3/" + process.env.INFURA_API_KEY
     );
-    const isProduction = true;
     this.web3 = web3 || new Web3(isProduction ? provider : ganache.provider());
   }
 
@@ -39,7 +39,8 @@ class GameController {
       return;
     }
     try {
-      // await new Promise((resolve) => setTimeout(resolve, 4000));
+      if (!isProduction)
+        await new Promise((resolve) => setTimeout(resolve, 4000));
       const nonce = await this.web3.eth.getTransactionCount(this.accounts[0]);
       await this.sicBo.methods.settle().send({
         from: this.accounts[0],
@@ -71,6 +72,21 @@ class GameController {
       isFinished,
       dices: isFinished ? dices : [],
     };
+  }
+
+  bet() {
+    if (!this.sicBo) {
+      throw new Error("The game has not started yet");
+    }
+    return this.sicBo.methods.bet(Math.random() > 0.5).send({
+      from: this.accounts[0],
+      gas: "3000000",
+      value: this.web3.utils.toWei("0.001", "ether"),
+    });
+  }
+
+  reset() {
+    this.sicBo = null;
   }
 }
 

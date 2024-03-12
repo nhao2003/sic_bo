@@ -49,8 +49,8 @@ app.get("/state", async (req, res) => {
       message: state ? "Game state" : "Game has not started yet",
       state,
     };
-    res.status(200).json(response);
     io.emit("state", response);
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -90,6 +90,34 @@ app.get("/settle", async (req, res) => {
       message: error.message,
     });
   }
+});
+
+app.get("/bet", async (req, res) => {
+  try {
+    await controller.bet();
+    const state = await controller.getGameState();
+    const response = {
+      message: "Bet placed",
+      state,
+    };
+    res.status(200).json(response);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+});
+
+app.get("/reset", async (req, res) => {
+  controller.reset();
+  const state = await controller.getGameState();
+  const response = {
+    message: "Game reset",
+    state,
+  };
+  io.emit("state", response);
+  res.status(200).json(response);
 });
 
 app.use((err, req, res, next) => {
