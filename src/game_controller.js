@@ -7,12 +7,12 @@ import dotenv from "dotenv";
 dotenv.config();
 const isProduction = true;
 class GameController {
-  constructor(web3) {
+  constructor() {
     const provider = new HDWalletProvider(
       process.env.MNEMONIC,
       "https://sepolia.infura.io/v3/" + process.env.INFURA_API_KEY
     );
-    this.web3 = web3 || new Web3(isProduction ? provider : ganache.provider());
+    this.web3 = new Web3(isProduction ? provider : ganache.provider());
   }
 
   async start() {

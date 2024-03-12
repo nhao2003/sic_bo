@@ -19,8 +19,10 @@ const io = new Server(server, {
 });
 const controller = new GameController();
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
+app.use((req, res, next) => {
+  console.log(req.path);
+  console.log(req.ip);
+  next();
 });
 
 // Start game
@@ -129,6 +131,7 @@ app.use((err, req, res, next) => {
 io.on("connection", async (socket) => {
   console.log("a user connected");
   const state = await controller.getGameState();
+  console.log("Sending game state to user");
   io.emit("state", {
     message: state ? "Game state" : "Game has not started yet",
     state,
