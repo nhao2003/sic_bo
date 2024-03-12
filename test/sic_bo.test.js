@@ -3,13 +3,13 @@ import { beforeEach, describe, it } from "node:test";
 import assert from "assert";
 import ganache from "ganache";
 import { Web3 } from "web3";
-import { SicBo } from "../compile";
+import SicBo  from "../src/compile.js";
 const web3 = new Web3(ganache.provider());
 
 const { abi, evm } = SicBo;
 
-let accounts: any;
-let sicBo: any;
+let accounts;
+let sicBo;
 
 beforeEach(async () => {
   accounts = await web3.eth.getAccounts();
@@ -32,9 +32,9 @@ describe("SicBo", () => {
     sicBo.methods.bet(true).send({
       from: accounts[0],
       value: web3.utils.toWei("0.001", "ether"),
-    }).then((result: any) => {
+    }).then((result) => {
       console.log(result);
-    }).catch((err: any) => {
+    }).catch((err) => {
       console.log(err);
     });
     // const players = await sicBo.methods.getPlayers().call({
