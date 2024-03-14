@@ -34,7 +34,7 @@ const SicBo = compiledContract.contracts["SicBo.sol"]["SicBo"];
 // Write the ABI to a JSON file
 fs.writeFileSync(
   path.resolve(__dirname, "../contracts", "SicBo.json"),
-  JSON.stringify(SicBo.abi, null, 2)
+  JSON.stringify(SicBo, null, 2)
 );
 
 // Export the compiled contract

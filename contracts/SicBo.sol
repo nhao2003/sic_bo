@@ -7,7 +7,8 @@
  * @dev The game is settled by rolling the dice and comparing the sum to the bets placed by the players.
  * @dev The owner of the contract can settle the game and distribute the winnings to the players.
  */
-pragma solidity >=0.4.0 <0.9.0;
+pragma solidity >=0.8.2 <0.9.0;
+
 contract SicBo {
     /// Adress of the owner of the contract.
     address public owner;
@@ -49,9 +50,9 @@ contract SicBo {
      * @dev Private function, can only be called internally.
      */
     function rollDices() private {
-        dices[0] = (uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, 0))) % 6) + 1;
-        dices[1] = (uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, 1))) % 6) + 1;
-        dices[2] = (uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, 2))) % 6) + 1;
+        dices[0] =(uint(keccak256(abi.encodePacked(block.timestamp, block.prevrandao))) % 6) + 1;
+        dices[1] =(uint(keccak256(abi.encodePacked(block.timestamp, block.prevrandao))) % 6) + 1;
+        dices[2] =(uint(keccak256(abi.encodePacked(block.timestamp, block.prevrandao))) % 6) + 1;
     }
 
     /**
@@ -69,17 +70,16 @@ contract SicBo {
             (msg.value + totalBet) * 2 <= address(this).balance,
             "Insufficient balance"
         );
-        Bet memory bet = Bet(msg.sender, msg.value, isOver);
-        betsMap[isOver].push(bet);
+        Bet memory newBet = Bet(msg.sender, msg.value, isOver);
+        betsMap[isOver].push(newBet);
         totalBet += msg.value;
         emit BetEvent(msg.sender, msg.value, isOver);
     }
 
     /**
      * @dev Settles the game and distributes the winnings to the players.
-     * @return The array of dice values after rolling.
      */
-    function settle() public returns (uint[3] memory) {
+    function settle() public {
         require(!isFinished, "Game is finished");
         require(msg.sender == owner, "Only owner can settle the game");
         rollDices();
@@ -88,11 +88,10 @@ contract SicBo {
         Bet[] memory bets = betsMap[isOver];
         for (uint256 i = 0; i < bets.length; i++) {
             uint256 amount = bets[i].amount * 2;
-            bets[i].player.transfer(amount);
+            payable(bets[i].player).transfer(amount);
         }
         isFinished = true;
         emit SettleEvent(dices);
-        return dices;
     }
 
     /**
@@ -107,7 +106,10 @@ contract SicBo {
      * @dev Retrieves the list of bets placed in the game.
      * @return The array of bets.
      */
-    function getBets() public view returns (mapping(bool => Bet[]) memory) {
+    function getBets() public view returns (Bet[][] memory) {
+        Bet[][] memory bets = new Bet[][](2);
+        bets[0] = betsMap[false];
+        bets[1] = betsMap[true];
         return bets;
     }
 
