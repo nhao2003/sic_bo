@@ -21,9 +21,8 @@ contract SicBo {
     event BetEvent(address indexed player, uint256 amount, bool isOver);
     /// Event emitted when the game is settled.
     event SettleEvent(uint[3] dices);
-
     /// Array of bets placed in the game.
-    Bet[] public bets;
+    mapping(bool => Bet[]) public betsMap;
 
     /// Struct representing a bet placed by a player.
     /// It contains the address of the player, the amount of the bet, and a boolean indicating whether the player is betting on the sum being over 10.
@@ -39,8 +38,8 @@ contract SicBo {
      */
     constructor() payable {
         require(
-            msg.value >= 0.01 ether,
-            "Initial balance must be greater than or equal to 0.01 ether"
+            msg.value >= 0.0001 ether,
+            "Initial balance must be greater than or equal to 0.0001 ether"
         );
         owner = msg.sender;
     }
@@ -50,15 +49,9 @@ contract SicBo {
      * @dev Private function, can only be called internally.
      */
     function rollDices() private {
-        for (uint i = 0; i < 3; i++) {
-            dices[i] =
-                (uint(
-                    keccak256(
-                        abi.encodePacked(block.timestamp, block.difficulty, i)
-                    )
-                ) % 6) +
-                1;
-        }
+        dices[0] = (uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, 0))) % 6) + 1;
+        dices[1] = (uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, 1))) % 6) + 1;
+        dices[2] = (uint(keccak256(abi.encodePacked(block.timestamp, block.difficulty, 2))) % 6) + 1;
     }
 
     /**
@@ -69,14 +62,15 @@ contract SicBo {
         require(!isFinished, "Game is finished");
         require(msg.value > 0, "Bet amount must be greater than 0");
         require(
-            msg.value <= 0.001 ether,
-            "Bet amount must be less than or equal to 0.001 ether"
+            msg.value <= 0.00001 ether,
+            "Bet amount must be less than or equal to 0.00001 ether"
         );
         require(
             (msg.value + totalBet) * 2 <= address(this).balance,
             "Insufficient balance"
         );
-        bets.push(Bet(msg.sender, msg.value, isOver));
+        Bet memory bet = Bet(msg.sender, msg.value, isOver);
+        betsMap[isOver].push(bet);
         totalBet += msg.value;
         emit BetEvent(msg.sender, msg.value, isOver);
     }
@@ -90,16 +84,14 @@ contract SicBo {
         require(msg.sender == owner, "Only owner can settle the game");
         rollDices();
         emit SettleEvent(dices);
-        uint sum = dices[0] + dices[1] + dices[2];
-        for (uint i = 0; i < bets.length; i++) {
-            if (!bets[i].isOver && sum >= 3 && sum <= 10) {
-                payable(bets[i].player).transfer(bets[i].amount * 2);
-            } else if (bets[i].isOver && sum >= 11 && sum <= 18) {
-                payable(bets[i].player).transfer(bets[i].amount * 2);
-            }
+        bool isOver = (dices[0] + dices[1] + dices[2]) > 10;
+        Bet[] memory bets = betsMap[isOver];
+        for (uint256 i = 0; i < bets.length; i++) {
+            uint256 amount = bets[i].amount * 2;
+            bets[i].player.transfer(amount);
         }
-        payable(owner).transfer(address(this).balance);
         isFinished = true;
+        emit SettleEvent(dices);
         return dices;
     }
 
@@ -115,7 +107,7 @@ contract SicBo {
      * @dev Retrieves the list of bets placed in the game.
      * @return The array of bets.
      */
-    function getBets() public view returns (Bet[] memory) {
+    function getBets() public view returns (mapping(bool => Bet[]) memory) {
         return bets;
     }
 
