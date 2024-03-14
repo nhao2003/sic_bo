@@ -82,26 +82,9 @@ app.get("/settle", async (req, res) => {
       state: {
         ...newState,
         isSettling: false,
-      }
+      },
     };
     io.emit("state", response);
-    res.status(200).json(response);
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({
-      message: error.message,
-    });
-  }
-});
-
-app.get("/bet", async (req, res) => {
-  try {
-    await controller.bet();
-    const state = await controller.getGameState();
-    const response = {
-      message: "Bet placed",
-      state,
-    };
     res.status(200).json(response);
   } catch (error) {
     console.log(error);
@@ -127,7 +110,6 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something broke!");
 });
 
-// When user connects, send the game state
 io.on("connection", async (socket) => {
   console.log("a user connected");
   const state = await controller.getGameState();

@@ -6,7 +6,14 @@ const { abi, evm } = SicBo;
 import dotenv from "dotenv";
 dotenv.config();
 const isProduction = true;
+/**
+ * Represents a game controller for the Sic Bo game.
+ */
 class GameController {
+  /**
+   * Creates a new instance of the GameController class.
+   * @constructor
+   */
   constructor() {
     const provider = new HDWalletProvider(
       process.env.MNEMONIC,
@@ -15,6 +22,10 @@ class GameController {
     this.web3 = new Web3(isProduction ? provider : ganache.provider());
   }
 
+  /**
+   * Starts the game.
+   * @returns {Promise<void>} A promise that resolves when the game has started.
+   */
   async start() {
     this.accounts = await this.web3.eth.getAccounts();
     this.sicBo = await new this.web3.eth.Contract(abi)
@@ -28,7 +39,7 @@ class GameController {
       });
   }
 
-  async settle(onSettling, onSettled) {
+  async settle() {
     if (!this.sicBo) {
       throw new Error("The game has not started yet");
     }
@@ -72,17 +83,6 @@ class GameController {
       isFinished,
       dices: isFinished ? dices : [],
     };
-  }
-
-  bet() {
-    if (!this.sicBo) {
-      throw new Error("The game has not started yet");
-    }
-    return this.sicBo.methods.bet(Math.random() > 0.5).send({
-      from: this.accounts[0],
-      gas: "3000000",
-      value: this.web3.utils.toWei("0.001", "ether"),
-    });
   }
 
   reset() {
