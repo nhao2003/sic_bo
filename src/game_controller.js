@@ -35,7 +35,7 @@ class GameController {
       .send({
         from: this.accounts[0],
         gas: "3000000",
-        value: this.web3.utils.toWei("0.1", "ether"),
+        value: this.web3.utils.toWei("0.0001", "ether"),
       });
   }
 
