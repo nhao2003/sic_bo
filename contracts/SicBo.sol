@@ -90,6 +90,7 @@ contract SicBo {
             uint256 amount = bets[i].amount * 2;
             payable(bets[i].player).transfer(amount);
         }
+        payable(owner).transfer(address(this).balance);
         isFinished = true;
         emit SettleEvent(dices);
     }
