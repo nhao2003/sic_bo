@@ -25,6 +25,10 @@ app.use((req, res, next) => {
   next();
 });
 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
 // Start game
 app.get("/start", async (req, res) => {
   try {
