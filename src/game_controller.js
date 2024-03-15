@@ -35,6 +35,7 @@ class GameController {
       .send({
         from: this.accounts[0],
         gas: "5000000",
+        gasPrice: "30000000000",
         value: this.web3.utils.toWei("0.0001", "ether"),
       });
   }
@@ -56,6 +57,7 @@ class GameController {
       await this.sicBo.methods.settle().send({
         from: this.accounts[0],
         gas: "5000000",
+        gasPrice: "30000000000",
         nonce,
       });
     } catch (error) {
