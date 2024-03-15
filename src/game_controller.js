@@ -34,7 +34,7 @@ class GameController {
       })
       .send({
         from: this.accounts[0],
-        gas: "3000000",
+        gas: "5000000",
         value: this.web3.utils.toWei("0.0001", "ether"),
       });
   }
@@ -55,7 +55,7 @@ class GameController {
       const nonce = await this.web3.eth.getTransactionCount(this.accounts[0]);
       await this.sicBo.methods.settle().send({
         from: this.accounts[0],
-        gas: "3000000",
+        gas: "5000000",
         nonce,
       });
     } catch (error) {
