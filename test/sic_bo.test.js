@@ -1,49 +1,26 @@
-import { beforeEach, describe, it } from "node:test";
-
-import assert from "assert";
-import ganache from "ganache";
 import { Web3 } from "web3";
-import SicBo  from "../src/compile.js";
-const web3 = new Web3(ganache.provider());
+import ganache from "ganache";
+import HDWalletProvider from "@truffle/hdwallet-provider";
+import dotenv from "dotenv";
+dotenv.config();
+const isProduction = true;
 
-const { abi, evm } = SicBo;
+const provider = new HDWalletProvider(
+  process.env.MNEMONIC,
+  "https://sepolia.infura.io/v3/" + process.env.INFURA_API_KEY,
+  process.env.ACCOUNT_INDEX
+);
+const web3 = new Web3(isProduction ? provider : ganache.provider());
 
-let accounts;
-let sicBo;
+const accounts = await web3.eth.getAccounts();
+console.log(accounts);
 
-beforeEach(async () => {
-  accounts = await web3.eth.getAccounts();
-  sicBo = await new web3.eth.Contract(abi)
-    .deploy({ data: evm.bytecode.object })
-    .send({
-      from: accounts[0],
-      gas: "2000000",
-      gasPrice: "10000000000",
-      value: web3.utils.toWei("2", "ether"),
-    });
+const account = accounts[0];
+const recipientAddress = "0xB119D8e465A9d2282244eba9f4029F271Ed08de2";
+const value = web3.utils.toWei("1", "ether");
+
+await web3.eth.sendTransaction({
+  from: account,
+  to: recipientAddress,
+  value: value,
 });
-
-describe("SicBo", () => {
-  it("deploys a contract", () => {
-    assert.ok(sicBo.options.address);
-  });
-
-  it("allows one account to bet", async () => {
-    sicBo.methods.bet(true).send({
-      from: accounts[0],
-      value: web3.utils.toWei("0.001", "ether"),
-    }).then((result) => {
-      console.log(result);
-    }).catch((err) => {
-      console.log(err);
-    });
-    // const players = await sicBo.methods.getPlayers().call({
-    //   from: accounts[0],
-    // });
-    // assert.equal(accounts[0], players[0]);
-
-  });
-
-  
-});
-
